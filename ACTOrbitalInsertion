@@ -1,0 +1,168 @@
+//Domenick Albanese
+//AE Comp Techniques
+//Dr. Archebault
+//4/21/16
+//Term Computer Project
+
+//Header Files:
+#include <iostream>
+#include <stdio.h>
+#include <math.h>
+#include <fstream>
+#include <cstdlib>
+using namespace std;
+
+
+//Solve Runge4-Kutta Method (x y h y2)
+void solve4RK(double timesegments, double rx, double ry, double vx, double vy, double a, double T)
+{
+	FILE * outfile_s;                                    // (this will save the users input data
+	fopen_s(&outfile_s, "test.txt", "w");      // and resultant matrices in a text file)
+
+	double Orbits = sqrt(pow(a,3));
+
+	double ym[10], k1[10], k2[10], k3[10], k4[10], slope[10];
+	double f[10];
+	double r2 = rx*rx + ry*ry;
+	double r3 = r2*sqrt(r2);
+	double pi = atan(1) * 4;
+	double y[10];
+	
+	fprintf(outfile_s, "rx\t\t");
+	fprintf(outfile_s, "ry\t\t");
+	fprintf(outfile_s, "vx\t\t");
+	fprintf(outfile_s, "vy\t\t\n");
+	
+	for (int i = 1; i < ((Orbits*T) / (0.01)); i++){
+
+		fprintf(outfile_s," %f", rx);
+		fprintf(outfile_s,"\t");
+		fprintf(outfile_s," %f", ry);
+		fprintf(outfile_s,"\t");
+		fprintf(outfile_s," %f", vx);
+		fprintf(outfile_s,"\t");
+		fprintf(outfile_s," %f", vy);
+		fprintf(outfile_s,"\n");
+
+		y[1] = rx;
+		y[2] = ry;
+		y[3] = vx;
+		y[4] = vy;
+		 
+		//cout << rx << " " << ry << " " << vx << " " << vy;
+
+		f[1] = vx;
+		f[2] = vy;
+		f[3] = -((4 * pow(pi, 2)*rx) / r3);
+		f[4] = -((4 * pow(pi, 2)*ry) / r3);
+
+
+		for (int j = 1; j < 5; j++){
+
+			k1[j] = f[j];
+			ym[j] = y[j] + k1[j] * timesegments / 2;
+
+		}
+
+		f[1] = ym[3];
+		f[2] = ym[4];
+		f[3] = -((4 * pow(pi, 2)*ym[1]) / r3);
+		f[4] = -((4 * pow(pi, 2)*ym[2]) / r3);
+
+		for (int j = 1; j < 5; j++){
+
+			k2[j] = f[j];
+			ym[j] = y[j] + k2[j] * timesegments / 2;
+
+		}
+
+		f[1] = ym[3];
+		f[2] = ym[4];
+		f[3] = -((4 * pow(pi, 2)*ym[1]) / r3);
+		f[4] = -((4 * pow(pi, 2)*ym[2]) / r3);
+
+		for (int j = 1; j < 5; j++){
+
+			k3[j] = f[j];
+			ym[j] = y[j] + k3[j] * timesegments;
+
+		}
+
+		f[1] = ym[3];
+		f[2] = ym[4];
+		f[3] = -((4 * pow(pi, 2)*ym[1]) / r3);
+		f[4] = -((4 * pow(pi, 2)*ym[2]) / r3);
+		for (int j = 1; j < 5; j++){
+
+			k4[j] = f[j];
+		}
+
+	//Finding rk "vector"
+		//slope[i] = (k1[i] + 2 * (k2[i] + k3[i]) + k4[i]) / 6;
+		//ym[i] = y[i] + slope[i] * timesegments;
+
+		rx = y[1] + (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1])*0.01 / 6;
+		ry = y[2] + (k1[2] + 2 * k2[2] + 2 * k3[2] + k4[2])*0.01 / 6;
+		vx = y[3] + (k1[3] + 2 * k2[3] + 2 * k3[3] + k4[3])*0.01 / 6;
+		vy = y[4] + (k1[4] + 2 * k2[4] + 2 * k3[4] + k4[4])*0.01 / 6;
+	}
+}
+
+
+//Create Matrix:
+int main()
+{
+
+	//Define variables
+	double pi = atan(1) * 4;
+	double ra=0;
+	double e=0;
+	double a;
+	//double vx = 0;
+	double T;
+	double timesegments = 0.01;
+	double vaphelion;
+	double vy;
+
+	cout << "Enter the aphelion distance of planet:\n";
+	cin >> ra;
+
+	cout << "\n\nEnter the eccentricity of the orbit:\n";
+	cin >> e;
+
+	//*****Solve Equations using the input distance and eccentricity******
+
+	//Semi-major axis:
+
+	a = ra / (1 + e);
+
+	//Orbital velocity at aphelion (AU/year):
+
+	vaphelion = sqrt(4 * pow(pi, 2)*((2 / ra) - (1 / a))); //initial value
+
+	//Orbital period (in years):
+
+	T = ((2 * pi*pow(a, 3.0 / 2.0)) / sqrt((4 * pow(pi, 2))));
+
+	printf("\n\nSemi-major Axis:");
+	printf(" %f", a);
+	printf("\nOrbital velocity at aphelion (AU/year):");
+	printf(" %f", vaphelion);
+	printf("\nOrbital period (years):");
+	printf(" %f", T);
+	printf("\n\n");
+
+	double rx =-ra;
+	double ry = 0.0;
+	double vx = 0.0;
+	vy = -vaphelion;
+	
+	solve4RK(timesegments, rx, ry, vx, vy, a, T);
+
+	printf("Press enter to continue..."); //*include in future programs so i/o screen does not automatically close*
+	getchar();
+	while (getchar() != '\n');
+
+
+	return 0;
+}
